@@ -1,0 +1,52 @@
+Critical Decisions:
+
+***************************************************
+Coverbild:
+
+Last phase as I have mentioned I couldn't insert NULL values into the Coverbild part, so now that's fixed.
+***************************************************
+USER.EMAIL: 
+
+Email part in the USER table was having some trouble on recognizing the pattern using GLOB, it should be fixed now.
+***************************************************
+Medium: 
+
+I had mediums as a separate entity with an attribute of {Hardcover, Softcover, ...} and now it's too late to change that according to the Tutors, so I have introduced some checking mechanism in the java program where I check, from the given medium number provided by the user whether it corresponds to a Hardcover, Softcover, etc.. this way the logic is inside the controller rather than creating a new separate relation.
+***************************************************
+ITEM/Artikel: 
+
+In my previous phase, I couldn't delete any corresponding Exemplare to an artikel that was assigned to some person, because I thought that would be the appropriate thing to do, but according to the tutors and some colleagues, removing an Artikel should entirely be possible regardless whether the artikel is assigned to some exemplare that are currently being lent (?), where I simply added on update/delete cascade and it works fine.
+***************************************************
+Redirection:
+
+in the @GET /mitarbeiter, I'm supposed to redirect the user to the /bibliothekare section, at first I thought it should be temporarily moved, but it turns out, this is a legitimate call and should ALWAYS be treated as /bibliothekare, therefore I have changed it to MOVED_PERMANENTLY.
+***************************************************
+Timestamps:
+
+We have been instructed, that when borrowing some item from the library we should be seconds specific aka including HH:MM:SS, but in the form provided in Swagger, the user doesn't provide that level of specifications (User only provides a date Year/Month/Day), and since the restriction in my database didn't allow such dates to exist, I decided to append a 00:00:00 to every given date from a user, this way the user's call can always run.
+***************************************************
+MaxID:
+
+When Deleting/Updating some table and then creating another instance of it at a later point, a problem occurs where the ID can't be just the count of rows in my table + 1, because obviously I can remove a value that's smaller than the Max Row Id value and I'd have a conflict creating another instance. 
+Therefore, what I did, is to run a simple select SQL query beforehand to know the max id in rows available and then add one to it, that way we'd have no conflicts.
+***************************************************
+BorrowReturnFailed:
+
+In the previous phase, I have misunderstood the issue of inserting a new line in the BORROW table, where I thought that the caller would always have perfect knowledge and we wouldn't have people calling invalid arguments therefore, I assumed that the return value in my insert query always to be provided correctly by the caller, but apparently that's not the case, so I fixed that where I basically check in the tables whether the ExemplarID that is to be borrowed either doesn't exist in my Borrow Table OR it does exist but its return value is set to true aka the exemplar is returned already and can be lent to someone else.
+
+***************************************************
+Patching/Deleting Address:
+
+This is possibly the most controversial part of my project, where we were explicitly instructed in phase3, that if an address that belongs to a customer is assigned to 2 or more users at any given time it should be invalid to update that address.
+Where it does make a lot of sense, but nowhere it was explicitly mentioned that after such a call the address that was supposed to be changed should be created anew to the requesting user(Which what I think is the correct implementation), but I don't want to add my own interpretation to the project and lose some marks as a consequence, therefore I have decided to NOT create a new address if the given address is assigned to 2 or more users. (I'm just returning an invalid request and that's it), again I want to make this very clear, I do agree that it should be done the other way around, but I couldn't find anywhere, where it said upon failing a new address should be created, I'm assuming this kind of error/failure is more or less intentional, therefore I don't want to mess with the integrity of this project.
+***************************************************
+Possible errors upon starting the project:
+
+The Project runs using the Intellij run button as well as ./gradlew run , which should be sufficient for this project, (gradle build/run should be machine dependant, so if you have the correct gradle version it should run (?).
+
+#UPDATE
+./gradlew run works and running it via Intellij also works.
+
+
+
+Thank you for reading this and sorry for boring you to death with possibly irrelevant details.

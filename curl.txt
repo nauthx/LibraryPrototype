@@ -1,0 +1,84 @@
+********************************************************************
+getAllUsers:
+curl -X 'GET'  'http://localhost:8080/kunden' -H 'accept: application/json;charset=UTF-8'
+
+AddUser:
+curl -X POST "http://localhost:8080/kunden" -H "accept: */*" -H "Content-Type: multipart/form-data" -F "email=crazyg@ms.com" -F "passwort=Test1" -F "vorname=Nasda" -F "nachname=Asda" -F "geburtsdatum="1995-10-10"" -F "guthaben=2.0" -F "beitragsbefreit=true" -F "adresseid=2"
+
+GetBibliothekare:
+curl -X GET "http://localhost:8080/bibliothekare?telefonnummer=0049098192" -H 'accept: application/json;charset=UTF-8' 
+
+
+addBiblothekar:
+curl -X POST "http://localhost:8080/bibliothekare" -H "accept: */*" -H "Content-Type: multipart/form-data" -F "email=allice@ms.com" -F "passwort=Test1" -F "vorname=Witch" -F "nachname=Cat" -F "geburtsdatum="1995-10-10"" -F "telefonnummer=0049098192"
+
+getGenre:
+curl -X 'GET'  'http://localhost:8080/genres' -H 'accept: application/json;charset=UTF-8'
+
+getAllArtikel:
+curl -X GET "http://localhost:8080/artikel?bezeichnung=Aladin" -H 'accept: application/json;charset=UTF-8'
+
+
+getExemplare:
+curl -X GET "http://localhost:8080/exemplare?preis=20&ausgeliehen=true" -H "accept: */*"
+
+
+redirectMitarbeiter:
+curl -X 'GET'  'http://localhost:8080/mitarbeiter' -H 'accept: application/json;charset=UTF-8'
+
+getAuthor:
+curl -X GET "http://localhost:8080/autoren?vorname=Dennis&nachname=Ritchie" -H 'accept: application/json;charset=UTF-8'
+
+getAddressen:
+//For Addresses that have a city that has white spaces s.a (New York City, Los Angeles) %20 should be used instead of the white spaces (since it's ASCII encoded)
+
+curl -X GET "http://localhost:8080/adressen?stadt=Tokyo" -H 'accept: application/json;charset=UTF-8'
+
+
+************************************************************
+##Authorized as an employee:
+
+addGenre:
+curl -X POST "http://localhost:8080/genres" -H  "accept: */*" -H  "Content-Type: multipart/form-data" -F "bezeichnung=Mystery" -u nauth100@hhu.de:Test1
+
+addArtikel:
+curl -X POST "http://localhost:8080/artikel" -H  "accept: */*" -H  "Content-Type: multipart/form-data" -F "autorid=4" -F "genreid=3" -F "mediumid=2" -F "isbn=2000" -F "erscheinungsdatum=2018-10-05" -F "beschreibung=A compelling story of an orphan dreaming of becoming the next Hokage" -F "bezeichnung=Naruto"  -u nauth100@hhu.de:Test1
+
+
+addExemplar:
+curl -X POST "http://localhost:8080/exemplare" -H  "accept: */*" -H  "Content-Type: multipart/form-data" -F "artikelid=2" -F "preis=500" -F "regal=9" -F "etage=5" -u nauth100@hhu.de:Test1
+
+addAuthor:
+curl -X POST "http://localhost:8080/autoren" -H  "accept: */*" -H  "Content-Type: multipart/form-data" -F "vorname=Michael" -F "nachname=Scott" -u nauth100@hhu.de:Test1
+
+deleteExemplar:
+curl -X DELETE "http://localhost:8080/exemplare/2" -H  "accept: */*" -u nauth100@hhu.de:Test1
+
+deleteArtikel:
+curl -X DELETE "http://localhost:8080/artikel/99" -H  "accept: */*" -u nauth100@hhu.de:Test1
+
+removeAuthor:
+curl -X DELETE "http://localhost:8080/autoren/8" -H  "accept: */*" -u nauth100@hhu.de:Test1
+
+patchBorrow:
+curl -X PATCH "http://localhost:8080/ausleihen/1?zurueckgegeben=true&beginn=2021-03-17&ende=2021-04-17" -H "accept: */*" -u nauth100@hhu.de:Test1
+
+*********************************************************
+##Authorized as a customer:
+
+addOwnAusleihe:
+curl -X POST "http://localhost:8080/ausleihen" -H "accept: */*" -H "Content-Type: multipart/form-data" -F "exemplarid=3" -F "zurueckgegeben=true" -F "beginn=2021-03-10" -F "ende=2022-03-10" -u Dummy@jme.com:Test1
+
+
+getOwnAusleihe:
+curl -X GET "http://localhost:8080/ausleihen?zurueckgegeben=true" -H "accept: */*" -u Dummy@jme.com:Test1
+
+
+UpdateAddress:
+curl -X PATCH "http://localhost:8080/adressen?hausnummer=720&stadt=Backyard" -H  "accept: */*" -u GorillaVsBear@jme.com:Test1
+
+
+
+
+
+

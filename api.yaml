@@ -1,0 +1,887 @@
+openapi: 3.0.2
+info:
+  title: DBS Programmierpraktikum - Phase 4 - API-Spezifikation
+  description: >-
+    In der folgenden Liste finden Sie die <b>für die Anwendergruppen
+    spezifischen Grundfunktionalitäten</b>. Es müssen <b>alle folgenden
+    allgemeinen Bedingungen</b> eingehalten werden:
+    <ul>
+      <li><b>Bei einer gültigen <code>GET</code>-Anfrage wird ein JSON-Array von JSON-Objekten, wobei ein JSON-Objekt eine Entität darstellt, zurückgegeben</b> und dies mit einem Code <code>200</code> belegt. Wird die <code>GET</code>-Anfrage auf einer nicht vorhandenen Ressource ausgeführt, so wird mit Code <code>404</code> geantwortet. Ist die Ressource woanders zu finden, wird dies mit dem Code <code>301</code> und dem Link im Header belegt. Eine <code>GET</code>-Anfrage auf einer Ressource, die eine Sammlung von Entitäten darstellt, kann durch Übergabe von bestimmten Parametern und dazugehörigen Werten <b>case-insensitive gefiltert</b> werden. Dabei muss jede Entität in der Sammlung allen Parametern gleichzeitig genügen. Die Sammlung wird in der Antwort in ein JSON-Array gekapselt.</li>
+      <li><b>Bei <code>POST</code>-Anfragen werden alle Parameter bis auf diejenigen Parameter der entsprechenden Ressource benötigt, die Standardwerte besitzen.</b> Wird die <code>POST</code>-Anfrage auf einer nicht vorhandenen Ressource ausgeführt, so wird mit Code <code>404</code> geantwortet. Ist die Ressource woanders zu finden, wird dies mit dem Code <code>301</code> und dem Link im Header belegt. Ist die Ressource vorhanden, aber die Anfragen wegen irgendeiner anderen Sache (ungültige Werte, zu wenig Parameter, ...) ungültig, so wird dies mit einem Code <code>400</code> beantwortet, ansonsten mit Code <code>201</code> und dem Link zur neuen Ressource im Header belegt (Hinweis: Sollte ein entsprechender Endpunkt in unserer API nicht vorhanden sind, kann ein fiktiver Link zurückgegeben werden).</li>
+      <li><b>Bei <code>PATCH</code>-Anfragen werden nur diejenigen Parameter benötigt, die geändert werden sollen, folglich mindestens einer.</b> Wird die <code>PATCH</code>-Anfrage auf einer nicht vorhandenen Ressource ausgeführt, so wird mit Code <code>404</code> geantwortet. Ist die Ressource vorhanden, aber die Anfragen wegen irgendeiner anderen Sache (ungültige Werte, ...) ungültig, so wird dies mit einem Code <code>400</code> beantwortet, anonsten mit Code <code>204</code> belegt.</li>
+      <li><b>Bei einer gültigen <code>DELETE</code>-Anfrage wird der Code <code>204</code> zurückgegeben.</b> Ist die Ressource nicht vorhanden, wird dies mit Code <code>404</code> belegt.</li>
+      <li><b>Bereiche mit einem Schlosssymbol werden durch eine HTTP-Basisauthentifizierung abgesichert.</b> Wird einer dieser Bereiche ohne oder mit falschen Anmeldedaten aufgerufen, so wird dies mit einem <code>401</code> und dem Header <code>WWW-Authenticate</code> belegt. Sind die Anmeldedaten richtig, aber der Anwender ist nicht authorisiert, so wird dies mit einem Code <code>403</code> belegt.</li>
+      <li><b>In Antworten mit Code <code>4xx</code> wird ein JSON-Objekt, das mindestens den Schlüssel <code>"message"</code> mit dem Wert <code>&lt;Fehlermeldung&gt;</code> enthält, zurückgegeben</b>, wobei <code>&lt;Fehlermeldung&gt;</code> eine für den Umstand entsprechende Fehlermeldung ist. Bei einer auftretenden Exception reicht dafür die Nachricht dieser.</li>
+      <li><b>Antworten auf gültige <code>POST</code>- und <code>PATCH</code>-Anfragen beinhalten nichts.</b></li>
+      <li><b>Anfragen sind vom Typ <code>multipart/form-data</code>, Antworten sind vom Typ <code>application/json;charset=UTF-8</code>.</b></li>
+      <li><b>Datums- und Zeitangaben werden im entsprechenden Standard-SQL-Format übertragen</b> (sowohl in der Anfrage, als auch in der Antwort).</li>
+      <li><b>Passwörter werden der Einfachheit halber im Klartext übergeben.</b></li>
+      <li><b>Die erwähnten IDs sind RowIDs!!!</b></li>
+    </ul>
+  version: 2020.WiSe.2
+servers:
+  - url: 'http://localhost:8080'
+paths:
+  /kunden:
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Kunden zurück.
+      description: >-
+        Alle **Kunden** werden zurückgegeben. Falls Query-Parameter mit Werten
+        angegeben wurden, wird die Rückgabe noch entsprechend gefiltert.
+      parameters:
+        - name: beitragsbefreit
+          in: query
+          description: 'Nur Kunden, die vom Jahresbeitrag **befreit** sind (`true` = beitragsfreit / `false` nicht beitragsbefreit).'
+          schema:
+            type: boolean
+        - name: guthaben
+          in: query
+          description: 'Nur Kunden, deren **Guthaben** >= `guthaben` ist, werden zurückgegeben.'
+          schema:
+            type: number
+            format: double
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        kundenid:
+                          type: integer
+                          description: '**RowID des Kunden**.'
+                      required:
+                        - kundenid
+                    - $ref: '#/components/schemas/kunde'
+                    - $ref: '#/components/schemas/user'
+    post:
+      tags:
+        - Anwender
+      summary: Fügt einen Kunden hinzu.
+      description: >-
+        Ein **Kunde** wird mit den entsprechenden Werten hinzugefügt. Ein zugeordneter User wird ebenfalls angelegt.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/user'
+                - $ref: '#/components/schemas/kunde'
+                - type: object
+                  properties:
+                    adresseid:
+                      type: integer
+                      description: '**RowID** der Adresse.'
+                  required:
+                    - adresseid
+      responses:
+        '201':
+          $ref: '#/components/responses/201'
+        '400':
+          $ref: '#/components/responses/400'
+  /bibliothekare:
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Bibliothekare zurück.
+      description: >-
+        Alle **Bibliothekare** werden zurückgegeben. Falls Query-Parameter mit Werten
+        angegeben wurden, wird die Rückgabe noch entsprechend gefiltert.
+      parameters:
+        - name: telefonnummer
+          in: query
+          description: 'Nur Bibliothekare, deren **Telefonnummer** `telefonnummer` enthalten, werden zurückgegeben.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        bibliothekarid:
+                          type: integer
+                          description: '**RowID des Bibliothekars**.'
+                      required:
+                        - bibliothekarid
+                    - $ref: '#/components/schemas/bibliothekar'
+                    - $ref: '#/components/schemas/user'
+    post:
+      tags:
+        - Anwender
+      summary: Fügt einen Bibliothekar hinzu.
+      description: >-
+        Ein **Bibliothekar** wird mit den entsprechenden tWerten hinzugefügt. Ein zugeordneter User wird ebenfalls angelegt.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/user'
+                - $ref: '#/components/schemas/bibliothekar'
+
+      responses:
+        '201':
+          $ref: '#/components/responses/201'
+        '400':
+          $ref: '#/components/responses/400'
+  /genres:
+    post:
+      tags:
+        - Authentifizierter und als Bibliothekar authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Fügt ein Genre hinzu.
+      description: >-
+        Ein **Genre** wird mit den entsprechenden Werten hinzugefügt.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/genre'
+      responses:
+        '201':
+          $ref: '#/components/responses/201'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+    get:
+      tags:
+        - Anwender
+      summary: Gibt alle Genres zurück.
+      description: >-
+        Alle **Genres** werden zurückgegeben. Falls Query-Parameter mit Werten
+        angegeben wurden, wird die Rückgabe noch entsprechend gefiltert.
+      parameters:
+        - name: bezeichnung
+          in: query
+          description: 'Nur Genres, deren **Bezeichnung** `bezeichnung` enthalten, werden zurückgegeben.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        genreid:
+                          type: integer
+                          description: '**RowID des Genres**.'
+                      required:
+                        - genreid
+                    - $ref: '#/components/schemas/genre'
+  /artikel:
+    post:
+      tags:
+        - Authentifizierter und als Bibliothekar authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Fügt einen Artikel hinzu.
+      description: >-
+        Ein **Artikel** wird mit den entsprechenden Werten hinzugefügt.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - type: object
+                  properties:
+                    autorid:
+                      type: integer
+                      description: '**RowID** des Autors.'
+                    genreid:
+                      type: integer
+                      description: '**RowID** des Genres.'
+                    mediumid:
+                      type: integer
+                      description: '**RowID** des Mediums.'
+                  required:
+                    - autorid
+                    - genreid
+                    - mediumid
+                - $ref: '#/components/schemas/artikel'
+      responses:
+        '201':
+          $ref: '#/components/responses/201'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Artikel zurück.
+      description: >-
+        Alle **Artikel** werden zurückgegeben. Falls Query-Parameter mit Werten
+        angegeben wurden, wird die Rückgabe noch entsprechend gefiltert.
+      parameters:
+        - name: isbn
+          in: query
+          description: 'Nur Artikel, deren **ISBN-Nummer** `isbn` enthalten, werden zurückgegeben.'
+          schema:
+            type: string
+        - name: bezeichnung
+          in: query
+          description: 'Nur Artikel, deren **Bezeichnung** `bezeichnung` enthalten, werden zurückgegeben.'
+          schema:
+            type: string
+        - name: beschreibung
+          in: query
+          description: 'Nur Artikel, deren **Beschreibung** `beschreibung` enthalten, werden zurückgegeben.'
+          schema:
+            type: string
+        - name: coverbild
+          in: query
+          description: 'Nur Artikel, deren **Coverbild** `coverbild` heißen, werden zurückgegeben.'
+          schema:
+            type: string
+        - name: erscheinungsdatum
+          in: query
+          description: 'Nur Artikel, deren **Erscheinungsdatum** >= `erscheinungsdatum` ist, werden zurückgegeben.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        artikelid:
+                          type: integer
+                          description: '**RowID des Artikels**.'
+                      required:
+                        - artikelid
+                    - $ref: '#/components/schemas/artikel'
+  /exemplare:
+    post:
+      tags:
+        - Authentifizierter und als Bibliothekar authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Fügt ein Exemplar hinzu.
+      description: >-
+        Ein **Exemplar** wird mit den entsprechenden Werten hinzugefügt.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - type: object
+                  properties:
+                    artikelid:
+                      type: integer
+                      description: '**RowID** des Artikels.'
+                  required:
+                    - artikelid
+                - $ref: '#/components/schemas/exemplar'
+                - $ref: '#/components/schemas/standort'
+      responses:
+        '201':
+          $ref: '#/components/responses/201'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Exemplare zurück.
+      description: >-
+        Alle **Exemplare** werden zurückgegeben. Falls Query-Parameter mit Werten
+        angegeben wurden, wird die Rückgabe noch entsprechend gefiltert.
+      parameters:
+        - name: preis
+          in: query
+          description: 'Nur Exemplare, deren **Anschaffungspreis** >= `preis` ist, werden zurückgegeben.'
+          schema:
+            type: number
+            format: double
+        - name: ausgeliehen
+          in: query
+          description: 'Nur Exemplare, die aktuell ausgeliehen (`ausgeliehen` = **true**) bzw. nicht ausgeliehen sind (`ausgeliehen` = **false**) sind, werden zurückgegeben.'
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        exemplarid:
+                          type: integer
+                          description: '**RowID des Exemplars**.'
+                        artikelid:
+                          type: integer
+                          description: '**RowID des Artikels**.'
+                      required:
+                        - exemplarid
+                        - artikelid
+                    - $ref: '#/components/schemas/exemplar'
+  /mitarbeiter:
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Bibliothekare zurück (per Redirect).
+      description: >-
+        Alle **Bibliothekare** werden zurückgegeben. Hierbei wird ein Redirect verwendet und der entsprechende Location-Header angegeben.
+      responses:
+        '301':
+          $ref: '#/components/responses/301'
+  /autoren:
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Autoren zurück.
+      description: >-
+        Alle **Autoren** werden zurückgegeben. Falls Query-Parameter mit Werten
+        angegeben wurden, wird die Rückgabe noch entsprechend gefiltert.
+      parameters:
+        - name: vorname
+          in: query
+          description: 'Nur Autoren, deren **Vorname** `vorname` enthält, werden zurückgegeben.'
+          schema:
+            type: string
+        - name: nachname
+          in: query
+          description: 'Nur Autoren, deren **Nachname** `nachname` enthält, werden zurückgegeben.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        autorid:
+                          type: integer
+                          description: '**RowID des Autors**.'
+                      required:
+                        - autorid
+                    - $ref: '#/components/schemas/autor'      
+    post:
+      tags:
+        - Authentifizierter und als Bibliothekar authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Fügt einen Autor hinzu.
+      description: >-
+        Ein **Autor** wird mit den entsprechenden Werten hinzugefügt.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - type: object
+                - $ref: '#/components/schemas/autor'
+      responses:
+        '201':
+          $ref: '#/components/responses/201'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+  /exemplare/{exemplarid}:
+    delete:
+      tags:
+        - Authentifizierter und als Bibliothekar authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Löscht ein Exemplar.
+      description: >-
+        Ein **Exemplar** wird entfernt.
+      parameters:
+        - name: exemplarid
+          in: path
+          description: '**RowID** des Exemplars.'
+          schema:
+            type: integer
+          required: true
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+  /artikel/{artikelid}:
+    delete:
+      tags:
+        - Authentifizierter und als Bibliothekar authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Löscht einen Artikel.
+      description: >-
+        Ein **Artikel** wird entfernt. Ggf. verknüpfte **Exemplare** werden ebenfalls gelöscht.
+      parameters:
+        - name: artikelid
+          in: path
+          description: '**RowID** des Artikels.'
+          schema:
+            type: integer
+          required: true
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+  /autoren/{autorid}:
+    delete:
+      tags:
+        - Authentifizierter und als Bibliothekar authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Löscht einen Autor.
+      description: >-
+        Ein **Autor** wird entfernt.
+      parameters:
+        - name: autorid
+          in: path
+          description: '**RowID** des Autors.'
+          schema:
+            type: integer
+          required: true
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '401':
+          $ref: '#/components/responses/401'
+        '404':
+          $ref: '#/components/responses/404'
+  /ausleihen/{ausleiheid}:
+    patch:
+      tags:
+        - Authentifizierter und als Bibliothekar authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Ändert eine Ausleihe.
+      description: >-
+        Die **Ausleihe** wird gemäß der Query-Parameter geändert.
+      parameters:
+        - name: ausleiheid
+          in: path
+          description: '**RowID** der Ausleihe.'
+          schema:
+            type: integer
+          required: true
+        - name: zurueckgegeben
+          in: query
+          description: '**Rückgabe-Status** der Ausleihe. Nicht zurückgegeben = false / Zurückgegeben = true.'
+          schema:
+            type: boolean
+        - name: beginn
+          in: query
+          description: '**Ausleihbeginn** im Format "YYYY-MM-DD".'
+          schema:
+            type: string
+            format: date
+        - name: ende
+          in: query
+          description: '**Ausleihende** im Format "YYYY-MM-DD".'
+          schema:
+            type: string
+            format: date
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+
+  /ausleihen:
+    post:
+      tags:
+        - Authentifizierter und als Kunde authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Fügt eine (eigene) Ausleihe hinzu.
+      description: >-
+        Eine **Ausleihe** wird mit den entsprechenden Werten hinzugefügt.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              allOf:
+                - type: object
+                  properties:
+                    exemplarid:
+                      type: integer
+                      description: '**RowID** des Exemplars.'
+                  required:
+                    - exemplarid
+                - $ref: '#/components/schemas/ausleihe'
+      responses:
+        '201':
+          $ref: '#/components/responses/201'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+    get:
+      tags:
+        - Authentifizierter und als Kunde authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Gibt (eigene) Ausleihen zurück.
+      description: >-
+        Eigene **Ausleihen** werden zurückgegeben. Falls Query-Parameter mit Werten
+        angegeben wurden, wird die Rückgabe noch entsprechend gefiltert.
+      parameters:
+        - name: zurueckgegeben
+          in: query
+          description: 'Nur Ausleihen, deren **Rückgabe-Status** `zurueckgegeben` ist, werden zurückgegeben.'
+          schema:
+            type: boolean
+        - name: beginn
+          in: query
+          description: 'Nur Ausleihen, deren **Beginn** <=  `beginn` ist, werden zurückgegeben.'
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        ausleiheid:
+                          type: integer
+                          description: '**RowID der Ausleihe**.'
+                        exemplarid:
+                          type: integer
+                          description: '**RowID des Exemplars**.'
+                      required:
+                        - exemplarid
+                        - ausleiheid
+                    - $ref: '#/components/schemas/ausleihe'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+  /adressen:
+    get:
+      tags:
+        - Anwender
+      summary: Gibt Adressen zurück.
+      description: >-
+        Alle **Adressen** werden zurückgegeben. Falls Query-Parameter mit Werten
+        angegeben wurden, wird die Rückgabe noch entsprechend gefiltert.
+      parameters:
+        - name: hausnummer
+          in: query
+          description: 'Nur Adressen, deren **Hausnummer** `hausnummer` enthält, werden zurückgegeben.'
+          schema:
+            type: string
+        - name: strasse
+          in: query
+          description: 'Nur Adressen, deren **Strasse** `strasse` enthält, werden zurückgegeben.'
+          schema:
+            type: string
+        - name: plz
+          in: query
+          description: 'Nur Adressen, deren **PLZ** `plz` enthält, werden zurückgegeben.'
+          schema:
+            type: string
+        - name: stadt
+          in: query
+          description: 'Nur Adressen, deren **Stadt** `stadt` enthält, werden zurückgegeben.'
+          schema:
+            type: string
+      responses:
+        '200':
+          description: '**OK**.'
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - type: object
+                      properties:
+                        adresseid:
+                          type: integer
+                          description: '**RowID der Adresse**.'
+                      required:
+                        - adresseid
+                    - $ref: '#/components/schemas/adresse'
+    patch:
+      tags:
+        - Authentifizierter und als Kunde authorisierter Anwender
+      security:
+        - basicAuth: []
+      summary: Ändert die (eigene) Adresse des Kunden.
+      description: >-
+        Die **Adresse** vom authentifizierten Kunden wird gemäß der Query-Parameter geändert.
+      parameters:
+        - name: hausnummer
+          in: query
+          description: 'Die neue **Hausnummer**.'
+          schema:
+            type: string
+        - name: strasse
+          in: query
+          description: 'Die neue **Strasse**.'
+          schema:
+            type: string
+        - name: stadt
+          in: query
+          description: 'Die neue **Stadt**.'
+          schema:
+            type: string
+        - name: plz
+          in: query
+          description: 'Die neue **PLZ**.'
+          schema:
+            type: string
+      responses:
+        '204':
+          $ref: '#/components/responses/204'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'            
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  responses:
+    '201':
+      description: '**Created**.'
+      headers:
+        Location:
+          description: Die URL der neuen Ressource.
+          schema:
+            type: string
+    '204':
+      description: '**No Content**.'
+    '301':
+      description: '**Moved Permanently**.'
+      headers:
+        Location:
+          description: Die URL der Ressource.
+          schema:
+            type: string
+    '400':
+      description: '**Bad Request**.'
+    '401':
+      description: '**Unauthorized**.'
+      headers:
+        WWW-Authenticate:
+          schema:
+            type: string
+    '403':
+      description: '**Forbidden**.'
+    '404':
+      description: '**Not Found**.'
+  schemas:
+    user:
+      type: object
+      properties:
+        email:
+          type: string
+          description: '**E-Mail-Adresse** des Users.'
+        passwort:
+          type: string
+          description: '**Passwort** des Users.'
+        vorname:
+          type: string
+          description: '**Vorname** des Users.'
+        nachname:
+          type: string
+          description: '**Nachname** des Users.'
+        geburtsdatum:
+          type: string
+          format: date
+          description: '**Geburtsdatum** des Users im Format "YYYY-MM-DD".'
+      required:
+        - email
+        - vorname
+        - nachname
+        - passwort
+        - geburtsdatum
+    bibliothekar:
+      type: object
+      properties:
+        telefonnummer:
+          type: string
+          description: '**Telefonnummer** des Bibliothekars.'
+      required:
+        - telefonnummer
+    autor:
+      type: object
+      properties:
+        vorname:
+          type: string
+          description: '**Vorname** des Autors.'
+        nachname:
+          type: string
+          description: '**Nachname** des Autors.'
+      required:
+        - vorname
+        - nachname
+    kunde:
+      type: object
+      properties:
+        guthaben:
+          type: number
+          format: double
+          description: '**Guthaben** des Kunden.'
+        beitragsbefreit:
+          type: boolean
+          description: 'Vom **Jahresbetrag befreit** (befreit = `true` oder nicht befreit = `false`).'
+      required:
+        - guthaben
+        - beitragsbefreit
+    artikel:
+      type: object
+      properties:
+        isbn:
+          type: string
+          description: '**ISBN-Nummer** des Artikels.'
+        erscheinungsdatum:
+          type: string
+          format: date
+          description: '**Erscheinungsdatum** des Artikels im Format "YYYY-MM-DD".'
+        beschreibung:
+          type: string
+          description: '**Beschreibung** des Artikels.'
+        bezeichnung:
+          type: string
+          description: '**Bezeichnung** des Artikels.'
+        coverbild:
+          type: string
+          description: '**Coverbild** des Artikels.'
+      required:
+        - isbn
+        - erscheinungsdatum
+        - beschreibung
+        - bezeichnung
+    exemplar:
+      type: object
+      properties:
+        preis:
+          type: number
+          format: double
+          description: '**Anschaffungspreis** des Exemplars.'
+      required:
+        - preis
+    ausleihe:
+      type: object
+      properties:
+        zurueckgegeben:
+          type: boolean
+          description: '**Rückgabe-Status** der Ausleihe. Nicht zurückgegeben = false / Zurückgegeben = true.'
+        beginn:
+          type: string
+          format: date
+          description: '**Ausleihbeginn** im Format "YYYY-MM-DD".'
+        ende:
+          type: string
+          format: date
+          description: '**Ausleihende** im Format "YYYY-MM-DD".'
+      required:
+        - zurueckgegeben
+        - beginn
+        - ende
+    genre:
+      type: object
+      properties:
+        bezeichnung:
+          type: string
+          description: '**Bezeichnung** des Genres.'
+      required:
+        - bezeichnung
+    medium:
+      type: object
+      properties:
+        art:
+          type: string
+          description: '**Art** des Mediums.'
+      required:
+        - art
+    standort:
+      type: object
+      properties:
+        regal:
+          type: integer
+          description: '**Regalnummer** des Standorts.'
+        etage:
+          type: integer
+          description: '**Etage** des Standorts.'
+      required:
+        - regal
+        - etage
+    adresse:
+      type: object
+      properties:
+        plz:
+          type: string
+          description: '**PLZ** der Adresse.'
+        stadt:
+          type: string
+          description: '**Stadt** der Adresse.'
+        strasse:
+          type: string
+          description: '**Straße** der Adresse.'
+        hausnummer:
+          type: string
+          description: '**Hausnummer** der Adresse.'
+      required:
+        - plz
+        - stadt
+        - strasse
+        - hausnummer

@@ -1,0 +1,42 @@
+de/hhu/cs/dbs/propra/application/services/CustomAuthorizationService.java
+ de.hhu.cs.dbs.propra.application.services.CustomAuthorizationService
+de/hhu/cs/dbs/propra/application/configurations/SecurityContext.java
+ de.hhu.cs.dbs.propra.application.configurations.SecurityContext
+de/hhu/cs/dbs/propra/application/configurations/SecurityFilter.java
+ de.hhu.cs.dbs.propra.application.configurations.SecurityFilter
+de/hhu/cs/dbs/propra/application/services/AuthorizationService.java
+ de.hhu.cs.dbs.propra.application.services.AuthorizationService
+de/hhu/cs/dbs/propra/application/configurations/AbstractBinder.java
+ de.hhu.cs.dbs.propra.application.configurations.AbstractBinder
+de/hhu/cs/dbs/propra/application/configurations/ResourceConfig.java
+ de.hhu.cs.dbs.propra.application.configurations.ResourceConfig
+de/hhu/cs/dbs/propra/infrastructure/repositories/SQLiteUserRepository.java
+ de.hhu.cs.dbs.propra.infrastructure.repositories.SQLiteUserRepository
+de/hhu/cs/dbs/propra/domain/model/Role.java
+ de.hhu.cs.dbs.propra.domain.model.Role
+de/hhu/cs/dbs/propra/application/exceptions/ThrowableMapper.java
+ de.hhu.cs.dbs.propra.application.exceptions.ThrowableMapper
+de/hhu/cs/dbs/propra/application/exceptions/WebApplicationExceptionMapper.java
+ de.hhu.cs.dbs.propra.application.exceptions.WebApplicationExceptionMapper
+de/hhu/cs/dbs/propra/application/services/BasicHTTPAuthenticationService.java
+ de.hhu.cs.dbs.propra.application.services.BasicHTTPAuthenticationService
+de/hhu/cs/dbs/propra/presentation/rest/UserController.java
+ de.hhu.cs.dbs.propra.presentation.rest.UserController
+de/hhu/cs/dbs/propra/application/exceptions/APIError.java
+ de.hhu.cs.dbs.propra.application.exceptions.APIError
+de/hhu/cs/dbs/propra/application/services/HTTPAuthenticationService.java
+ de.hhu.cs.dbs.propra.application.services.HTTPAuthenticationService
+de/hhu/cs/dbs/propra/domain/model/User.java
+ de.hhu.cs.dbs.propra.domain.model.User
+de/hhu/cs/dbs/propra/application/exceptions/SQLExceptionMapper.java
+ de.hhu.cs.dbs.propra.application.exceptions.SQLExceptionMapper
+de/hhu/cs/dbs/propra/presentation/rest/BibliothekarController.java
+ de.hhu.cs.dbs.propra.presentation.rest.BibliothekarController
+de/hhu/cs/dbs/propra/presentation/rest/CustomerController.java
+ de.hhu.cs.dbs.propra.presentation.rest.CustomerController
+de/hhu/cs/dbs/propra/application/services/AuthenticationService.java
+ de.hhu.cs.dbs.propra.application.services.AuthenticationService
+de/hhu/cs/dbs/propra/Application.java
+ de.hhu.cs.dbs.propra.Application
+de/hhu/cs/dbs/propra/domain/model/UserRepository.java
+ de.hhu.cs.dbs.propra.domain.model.UserRepository
