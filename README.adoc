@@ -3,7 +3,7 @@ Critical Decisions:
 ***************************************************
 Coverbild:
 
-Last phase as I have mentioned I couldn't insert NULL values into the Coverbild part, so now that's fixed.
+Previous issue: insert NULL values into the Coverbild part, so now that's fixed.
 ***************************************************
 USER.EMAIL: 
 
@@ -11,11 +11,11 @@ Email part in the USER table was having some trouble on recognizing the pattern 
 ***************************************************
 Medium: 
 
-I had mediums as a separate entity with an attribute of {Hardcover, Softcover, ...} and now it's too late to change that according to the Tutors, so I have introduced some checking mechanism in the java program where I check, from the given medium number provided by the user whether it corresponds to a Hardcover, Softcover, etc.. this way the logic is inside the controller rather than creating a new separate relation.
+I had mediums as a separate entity with an attribute of {Hardcover, Softcover, ...} and now it's too late to change that, so I have introduced some checking mechanism in the java program where I check, from the given medium number provided by the user whether it corresponds to a Hardcover, Softcover, etc.. this way the logic is inside the controller rather than creating a new separate relation.
 ***************************************************
 ITEM/Artikel: 
 
-In my previous phase, I couldn't delete any corresponding Exemplare to an artikel that was assigned to some person, because I thought that would be the appropriate thing to do, but according to the tutors and some colleagues, removing an Artikel should entirely be possible regardless whether the artikel is assigned to some exemplare that are currently being lent (?), where I simply added on update/delete cascade and it works fine.
+In the previous phase, I couldn't delete any corresponding Exemplare to an artikel that was assigned to some person, because I thought that would be the appropriate thing to do, but according to some colleagues, removing an Artikel should entirely be possible regardless whether the artikel is assigned to some exemplare that are currently being lent (?), where I simply added on update/delete cascade and it works fine.
 ***************************************************
 Redirection:
 
@@ -37,7 +37,7 @@ In the previous phase, I have misunderstood the issue of inserting a new line in
 ***************************************************
 Patching/Deleting Address:
 
-This is possibly the most controversial part of my project, where we were explicitly instructed in phase3, that if an address that belongs to a customer is assigned to 2 or more users at any given time it should be invalid to update that address.
+This is possibly the most controversial part of my project, is that if an address that belongs to a customer is assigned to 2 or more users at any given time it should be invalid to update that address.
 Where it does make a lot of sense, but nowhere it was explicitly mentioned that after such a call the address that was supposed to be changed should be created anew to the requesting user(Which what I think is the correct implementation), but I don't want to add my own interpretation to the project and lose some marks as a consequence, therefore I have decided to NOT create a new address if the given address is assigned to 2 or more users. (I'm just returning an invalid request and that's it), again I want to make this very clear, I do agree that it should be done the other way around, but I couldn't find anywhere, where it said upon failing a new address should be created, I'm assuming this kind of error/failure is more or less intentional, therefore I don't want to mess with the integrity of this project.
 ***************************************************
 Possible errors upon starting the project:
